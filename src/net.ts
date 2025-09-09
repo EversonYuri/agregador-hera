@@ -1,4 +1,5 @@
 import * as net from 'net';
+import { exec } from 'child_process';
 
 export function checkPort(ip: string, port: number): Promise<boolean> {
     return new Promise((resolve) => {
@@ -8,7 +9,7 @@ export function checkPort(ip: string, port: number): Promise<boolean> {
             socket.destroy();
             resolve(true);
         });
-        socket.on('error', () => {
+        socket.on('error', () => {            
             resolve(false);
         });
         socket.on('timeout', () => {

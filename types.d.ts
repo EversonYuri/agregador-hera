@@ -3,4 +3,5 @@ interface INFO {
     tag?: string | undefined;
     ip?: string | undefined;
     server?: boolean | undefined;
+    database?: boolean | undefined;
 }
