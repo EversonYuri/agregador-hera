@@ -6,7 +6,9 @@ export async function openConnection(host: string): Promise<mariadb.PoolConnecti
         user: 'root',
         password: '240190',
         port: 3306,
-        connectionLimit: 5
+        connectionLimit: 5,
+        queryTimeout: 3000,
+        connectTimeout: 3000
     })
         .getConnection()
 }

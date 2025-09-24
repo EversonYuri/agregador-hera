@@ -1,5 +1,4 @@
 import * as net from 'net';
-import { exec } from 'child_process';
 
 export function checkPort(ip: string, port: number): Promise<boolean> {
     return new Promise((resolve) => {

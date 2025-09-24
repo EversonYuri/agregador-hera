@@ -1,17 +1,20 @@
+import { openConnection } from "./db/conn";
 import { checkPort } from "./net";
 
-export async function gatherMachineInfo(machine: Record<string, any>): Promise<INFO> {
-    let info: INFO = {}
-    info.name = machine.DNSName.split('.')[0]
 
-    if (machine.Tags && machine.Tags.length > 0) {
-        info.tag = machine.Tags[0].replace('tag:', '')
+export async function gatherBasicMachineInfo(machine: Record<string, any>) {
+    if (Array.isArray(machine.groups)) {
+        let group = machine.groups.filter((group: any) => group.name !== 'All' && group.name !== 'cliente')[0];
+        machine.group = group ? group.name : 'ALL';
     }
-    info.ip = machine.TailscaleIPs[0]
 
-    info.server = await checkPort(info.ip as string, 8080);
-    info.database = await checkPort(info.ip as string, 3306);
-    console.log(info);
-    
-    return info;
+    machine.isServer = await checkPort(machine.ip as string, 8080);
+    machine.isDatabase = await checkPort(machine.ip as string, 3306);
+    if (machine.isDatabase) {
+        machine.isPDV = await openConnection(machine.ip)
+            .then(conn => conn.query("SHOW DATABASES LIKE 'pdv'"))
+            .then(rows => rows.length > 0);
+    } else machine.isPDV = false;
+
+    return machine
 }
