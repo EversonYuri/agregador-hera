@@ -10,11 +10,11 @@ export async function getPeers() {
         .then(response => response.json())
         .catch(err => console.error(err)) as Record<string, any>[]
 
-    machines = await Promise.all(machines.map(async (machine) => (await gatherBasicMachineInfo(machine))))
+    let editedMachines: any[] = await Promise.all(machines.map(async (machine) => await gatherBasicMachineInfo(machine)));
 
     const groupSet = new Set<string>();
-    for (const machine of machines) {
-        if (Array.isArray(machine.groups)) {
+    for (const machine of editedMachines) {
+        if (machine && Array.isArray(machine.groups)) {
             for (const group of machine.groups) {
                 if (group && typeof group.name === 'string') {
                     groupSet.add(group.name);
@@ -24,7 +24,7 @@ export async function getPeers() {
     }
 
     return {
-        machines,
+        machines: editedMachines,
         groups: Array.from(groupSet)
     }
 }
