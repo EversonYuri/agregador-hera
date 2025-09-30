@@ -25,6 +25,7 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
                 machine.notasRejeitadas = await query("SELECT * from pdv.ecf_venda_cabecalho where `STATUS_NFCE` = 2");
                 machine.pdvInfo = await query("select ec2.TIPO_APLICATIVO, ec.NOME, ec2.versao, case when ec2.SERVIDOR_NFCE = 2 then 'NS A1' when ec2.SERVIDOR_NFCE = 3 then 'NS A3' when ec2.SERVIDOR_NFCE = 4 then 'EMISSOR HERA' end as SERVIDOR_NFCE from pdv.ecf_configuracao ec2 join pdv.ecf_caixa ec;")
                 machine.NCMIncorretos = await query("SELECT DISTINCT d.GTIN, d.DESCRICAO FROM pdv.ecf_venda_detalhe d JOIN pdv.ecf_venda_cabecalho c ON d.ID_ECF_VENDA_CABECALHO = c.ID WHERE INSTR(CONVERT(c.RETORNO_NFCE USING latin1), 'Rejeição: Informado NCM inexistente [nItem:') > 0 AND d.ITEM = SUBSTRING(CONVERT(c.RETORNO_NFCE USING latin1), INSTR(CONVERT(c.RETORNO_NFCE USING latin1), '[nItem:') + 7, INSTR(CONVERT(c.RETORNO_NFCE USING latin1), ']') - INSTR(CONVERT(c.RETORNO_NFCE USING latin1), '[nItem:') - 7)")
+                machine.notasDuplicidade = await query("SELECT * FROM pdv.ecf_venda_cabecalho WHERE INSTR(CONVERT(RETORNO_NFCE USING cp850), 'Duplicidade de NF-e') > 0")
             }
 
             release()
