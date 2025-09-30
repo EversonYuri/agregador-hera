@@ -1,10 +1,10 @@
-import { writeFileSync } from "fs";
+import fs from "fs";
 import path from "path";
 
 export function createHTMLFile(machine: Record<string, any>) {
 
     if (machine.isServer && machine.ip) {
-        const fileName = `${machine.group.name || machine.name || machine.ip}.html`;
+        const fileName = `${ machine.name || machine.group || machine.ip}.html`;
         const redirectHtml = `
 <!DOCTYPE html>
 <html lang=\"pt-BR\">
@@ -17,8 +17,8 @@ export function createHTMLFile(machine: Record<string, any>) {
 <p>Redirecionando para <a href=\"http://${machine.ip}:8080/gestaofacil\">Gestão Fácil</a>...</p>
 </body>
 </html>`;
-        const folderPath = path.join(__dirname, '..', 'public', (machine.group) as string);
-
-        writeFileSync(path.join(folderPath, fileName), redirectHtml, { encoding: 'utf8' });
+        const folderPath = path.join(__dirname, '..', 'public', 'ESTABELECIMENTOS', (machine.group) as string);
+        
+        fs.writeFileSync(path.join(folderPath, fileName), redirectHtml, { encoding: 'utf8' });
     }
 };

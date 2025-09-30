@@ -1,25 +1,18 @@
 import fs from "fs";
 import path from "path";
 
-export async function createFolder(machine: Record<string, any>) {
+export function createFolder(folderName: string) {
+    const folderPath = path.join(__dirname, '..', 'public', folderName);
 
-    const folderPath = path.join(__dirname, '..', 'public', machine.group);
-    const backupFolderPath = path.join(__dirname, '..', 'public', machine.group, 'backup');
-    const subFolderPath = path.join(__dirname, '..', 'public', machine.group, 'backup', machine.name);
-
-    console.log(folderPath);
-    console.log(backupFolderPath);
-    console.log(subFolderPath);
-    
     if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
+        console.log(`Pasta '${folderName}' criada com sucesso em ${folderPath}`);
     }
+}
 
-    if (!fs.existsSync(backupFolderPath)) {
-        fs.mkdirSync(backupFolderPath);
-    }
-
-    if (!fs.existsSync(subFolderPath)) {
-        fs.mkdirSync(subFolderPath);
-    }
+export function createStoreFolder(machine: Record<string, any>) {
+    createFolder('ESTABELECIMENTOS')
+    createFolder(path.join('ESTABELECIMENTOS', machine.group))
+    createFolder(path.join('ESTABELECIMENTOS', machine.group, 'backup'))
+    createFolder(path.join('ESTABELECIMENTOS', machine.group, 'backup', machine.name))
 }
