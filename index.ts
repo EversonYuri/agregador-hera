@@ -1,10 +1,14 @@
-import { createFolder } from './src/createFolder';
+import { createStoreFolder } from './src/createFolder';
 import { createHTMLFile } from './src/createHTMLFile';
 import { backupDb } from './src/db/backup';
+import { Logger } from './src/log/log';
 import { getPeers } from './src/netbird';
 
 
 async function main() {
+
+    const info = new Logger('info');
+    const notasRejeitadas = new Logger('notasRejeitadas');
 
     const { machines, groups } = await getPeers()
 
@@ -12,7 +16,7 @@ async function main() {
     //
     //
     try {
-        for (const machine of machines) await createFolder(machine)
+        for (const machine of machines) createStoreFolder(machine)
     } catch (error) { console.error('Erro a criar a pasta:', error) }
 
     // Criação dos arquivos HTML
@@ -41,29 +45,36 @@ async function main() {
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
     // Log das informações coletadas
-    //
-    //
+    // 
+    // 
     try {
-        for (const machine of machines) {
-            const log = `
-IP: ${machine.ip}
-NOME: ${machine.name}
-GRUPO: ${machine.group}
-PDV INFO:
-    TIPO APLICATIVO: ${machine.pdvInfo ? machine.pdvInfo[0]?.TIPO_APLICATIVO : 'N/A'}
-    EMISSOR: ${machine.pdvInfo ? machine.pdvInfo[0]?.SERVIDOR_NFCE : 'N/A'}
-    NOME CAIXA: ${machine.pdvInfo ? machine.pdvInfo[0]?.NOME : 'N/A'}
-    VERSAO PDV: ${machine.pdvInfo ? machine.pdvInfo[0]?.versao : 'N/A'}
-    NOTAS REJEITADAS: ${machine.notasRejeitadas ? machine.notasRejeitadas.length : 'N/A'}
-        NCM INCORRETOS: ${machine.NCMIncorretos ? JSON.stringify(machine.NCMIncorretos, null, 2) : 'N/A'}
-    NOTAS DUPLICIDADE: ${machine.notasDuplicidade ? machine.notasDuplicidade.length : 'N/A'}
-SERVER INFO:
-    RAZAO SOCIAL: ${machine.serverInfo ? machine.serverInfo[0]?.RAZAO_SOCIAL : 'N/A'}
-    CNPJ: ${machine.serverInfo ? machine.serverInfo[0]?.CNPJ : 'N/A'}
-    VERSAO SERVER: ${machine.serverInfo ? machine.serverInfo[0]?.versaoSistema : 'N/A'}`
-            console.log(log);
-        }
+        for (const machine of machines) info.log(`IP: ${machine.ip}\nNOME: ${machine.name}\nGRUPO: ${machine.group}\nPDV INFO:\nTIPO APLICATIVO: ${machine.pdvInfo ? machine.pdvInfo[0]?.TIPO_APLICATIVO : 'N/A'}\nEMISSOR: ${machine.pdvInfo ? machine.pdvInfo[0]?.SERVIDOR_NFCE : 'N/A'}\nNOME CAIXA: ${machine.pdvInfo ? machine.pdvInfo[0]?.NOME : 'N/A'}\nVERSAO PDV: ${machine.pdvInfo ? machine.pdvInfo[0]?.versao : 'N/A'}\nNOTAS DUPLICIDADE: ${machine.notasDuplicidade ? machine.notasDuplicidade.length : 'N/A'}\nNOTAS REJEITADAS: ${machine.notasRejeitadas ? machine.notasRejeitadas.length : 'N/A'}\nNCM INCORRETOS: ${machine.NCMIncorretos ? JSON.stringify(machine.NCMIncorretos) : 'N/A'}\nSERVER INFO:\nRAZAO SOCIAL: ${machine.serverInfo ? machine.serverInfo[0]?.RAZAO_SOCIAL : 'N/A'}\nCNPJ: ${machine.serverInfo ? machine.serverInfo[0]?.CNPJ : 'N/A'}\nVERSAO SERVER: ${machine.serverInfo ? machine.serverInfo[0]?.versaoSistema : 'N/A'}\n`)
+        info.createLogFile();
     } catch (error) { console.error('Erro ao fazer o log do computador:', error) }
+
+    // Log das notas rejeitadas
+    // 
+    // 
+    try {
+
+        for (const machine of machines) if (machine.notasRejeitadas && machine.notasRejeitadas.length > 0 || machine.notasDuplicidade && machine.notasRejeitadas.length > 0) {
+            let grupos = `GRUPO: ${machine.group}\n`
+            for (const computador of groups.get(machine.group).computadores) {
+                if (computador.isServer) {
+                    grupos += `   ${computador.name}: http://${computador.ip}:8080/gestaofacil\n`
+                }
+            }
+            let NCMIncorretos = ''
+            if (machine.NCMIncorretos && machine.NCMIncorretos.length > 0) {
+                NCMIncorretos += 'NCMS INCORRETOS:\n'
+                for (const nota of machine.NCMIncorretos)
+                    NCMIncorretos += `   ${nota.GTIN} ${nota.DESCRICAO}\n`
+            }
+
+            notasRejeitadas.log(`\nIP: ${machine.ip}\nNOME: ${machine.name}\n${grupos}NOTAS REJEITADAS: ${machine.notasRejeitadas ? machine.notasRejeitadas.length : 'N/A'}\nNOTAS DUPLICIDADE: ${machine.notasDuplicidade ? machine.notasDuplicidade.length : 'N/A'}\n${NCMIncorretos}`);
+        }
+        notasRejeitadas.createLogFile();
+    } catch (error) { console.error('Erro ao fazer o log das notas rejeitadas:', error) }
 }
 
 main()
