@@ -26,23 +26,23 @@ async function main() {
         for (const machine of machines) createHTMLFile(machine)
     } catch (error) { console.error('Erro ao coletar informações do computador:', error) }
 
-    // Backup do database
-    //
-    //
-    try {
-        for (const machine of machines) {
-            if (machine.isServer) backupDb(machine, 'database');
-        }
-    } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
+    // // Backup do database
+    // //
+    // //
+    // try {
+    //     for (const machine of machines) {
+    //         if (machine.isServer) backupDb(machine, 'database');
+    //     }
+    // } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
 
-    // Backup do pdv
-    //
-    //
-    try {
-        for (const machine of machines) {
-            if (machine.isPDV) backupDb(machine, 'pdv');
-        }
-    } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
+    // // Backup do pdv
+    // //
+    // //
+    // try {
+    //     for (const machine of machines) {
+    //         if (machine.isPDV) backupDb(machine, 'pdv');
+    //     }
+    // } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
     // Log das informações coletadas
     // 
@@ -60,21 +60,22 @@ async function main() {
         for (const machine of machines) if (machine.notasRejeitadas && machine.notasRejeitadas.length > 0 || machine.notasDuplicidade && machine.notasRejeitadas.length > 0) {
             let grupos = `GRUPO: ${machine.group}\n`
             for (const computador of groups.get(machine.group).computadores) {
-                if (computador.isServer) {
-                    grupos += `   ${computador.name}: http://${computador.ip}:8080/gestaofacil\n`
-                }
+                if (computador.isServer) grupos += `   ${computador.name}: http://${computador.ip}:8080/gestaofacil\n`
             }
+
             let NCMIncorretos = ''
             if (machine.NCMIncorretos && machine.NCMIncorretos.length > 0) {
                 NCMIncorretos += 'NCMS INCORRETOS:\n'
                 for (const nota of machine.NCMIncorretos)
                     NCMIncorretos += `   ${nota.GTIN} ${nota.DESCRICAO}\n`
             }
-
-            notasRejeitadas.log(`\nIP: ${machine.ip}\nNOME: ${machine.name}\n${grupos}NOTAS REJEITADAS: ${machine.notasRejeitadas ? machine.notasRejeitadas.length : 'N/A'}\nNOTAS DUPLICIDADE: ${machine.notasDuplicidade ? machine.notasDuplicidade.length : 'N/A'}\n${NCMIncorretos}`);
+            if (machine.pdvInfo && machine.pdvInfo.length > 0 && machine.pdvInfo[0].TIPO_APLICATIVO) notasRejeitadas.log(`\nIP: ${machine.ip}\nNOME: ${machine.name}\n${grupos}NOTAS REJEITADAS: ${machine.notasRejeitadas ? machine.notasRejeitadas.length : 'N/A'}\nNOTAS DUPLICIDADE: ${machine.notasDuplicidade ? machine.notasDuplicidade.length : 'N/A'}\n${NCMIncorretos}`);
         }
         notasRejeitadas.createLogFile();
     } catch (error) { console.error('Erro ao fazer o log das notas rejeitadas:', error) }
+
+    console.log('Processo finalizado!');
 }
 
 main()
+
