@@ -3,6 +3,7 @@ import { createHTMLFile } from './src/createHTMLFile';
 import { backupDb } from './src/db/backup';
 import { Logger } from './src/log/log';
 import { getPeers } from './src/netbird';
+import { backupDatabase } from './verify';
 
 
 async function main() {
@@ -26,23 +27,25 @@ async function main() {
         for (const machine of machines) createHTMLFile(machine)
     } catch (error) { console.error('Erro ao coletar informações do computador:', error) }
 
-    // // Backup do database
-    // //
-    // //
-    // try {
-    //     for (const machine of machines) {
-    //         if (machine.isServer) backupDb(machine, 'database');
-    //     }
-    // } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
+    // Backup do database
+    //
+    //
+    try {
+        for (const machine of machines) {
+            if (machine.isServer && machine.connected) backupDatabase(machine.ip, 'database', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
+        }
+    } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
 
-    // // Backup do pdv
-    // //
-    // //
-    // try {
-    //     for (const machine of machines) {
-    //         if (machine.isPDV) backupDb(machine, 'pdv');
-    //     }
-    // } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
+
+
+    // Backup do pdv
+    //
+    //
+    try {
+        for (const machine of machines) {
+            if (machine.isServer && machine.connected) backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
+        }
+    } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
     // Log das informações coletadas
     // 
