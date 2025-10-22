@@ -1,3 +1,4 @@
+import { logMessage } from "./lib/utils";
 import { gatherBasicMachineInfo } from "./machine";
 
 export async function getPeers() {
@@ -12,6 +13,7 @@ export async function getPeers() {
         .catch(err => console.error(err)) as Record<string, any>[]
 
     let editedMachines: any[] = await Promise.all(machines.map(async (machine) => await gatherBasicMachineInfo(machine)));
+    logMessage("✅ Terminado de pegar a informação dos peers.");
 
     const groupSet = new Map<string, any>();
     for (const machine of editedMachines) if (machine && Array.isArray(machine.groups)) {
@@ -32,16 +34,13 @@ export async function getPeers() {
                         {
                             ip: machine.ip,
                             name: machine.name,
-                            isServer: machine.isServer,
+                            isServer: machine.isServer
                         }
                     ]
                 })
             }
-
         }
     }
-    console.log(groupSet);
-
 
     return {
         machines: editedMachines,

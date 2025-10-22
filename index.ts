@@ -1,9 +1,9 @@
 import { createStoreFolder } from './src/createFolder';
 import { createHTMLFile } from './src/createHTMLFile';
-import { backupDb } from './src/db/backup';
+import { backupDatabase } from './src/db/backup';
+import { runWithLimit } from './src/lib/utils';
 import { Logger } from './src/log/log';
 import { getPeers } from './src/netbird';
-import { backupDatabase } from './verify';
 
 
 async function main() {
@@ -31,20 +31,18 @@ async function main() {
     //
     //
     try {
-        for (const machine of machines) {
-            if (machine.isServer && machine.connected) backupDatabase(machine.ip, 'database', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
-        }
+        await runWithLimit(machines, 20, async (machine) => {
+            if (machine.isServer && machine.connected) await backupDatabase(machine.ip, 'database', `./public/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
+        });
     } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
-
-
 
     // Backup do pdv
     //
     //
     try {
-        for (const machine of machines) {
-            if (machine.isServer && machine.connected) backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
-        }
+        await runWithLimit(machines, 20, async (machine) => {
+            if (machine.isPDV && machine.connected) backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
+        });
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
     // Log das informações coletadas
@@ -59,7 +57,6 @@ async function main() {
     // 
     // 
     try {
-
         for (const machine of machines) if (machine.notasRejeitadas && machine.notasRejeitadas.length > 0 || machine.notasDuplicidade && machine.notasRejeitadas.length > 0) {
             let grupos = `GRUPO: ${machine.group}\n`
             for (const computador of groups.get(machine.group).computadores) {

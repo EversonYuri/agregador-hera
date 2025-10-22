@@ -1,12 +1,18 @@
 import { openConnection } from "./db/conn";
+import { logMessage } from "./lib/utils";
 import { checkPort } from "./net";
 
 export async function gatherBasicMachineInfo(machine: Record<string, any>) {
+    const timeout = setTimeout(() => {
+        console.error(`⏰ Tempo esgotado ao tentar conectar no IP ${machine.ip}`);
+        return machine;
+    }, 30000);
     try {
         if (Array.isArray(machine.groups)) {
             let group = machine.groups.filter((group: any) => group.name !== 'All' && group.name !== 'cliente')[0];
-            machine.group = group ? group.name : 'ALL';
+            machine.group = group ? (group.name as string).toUpperCase() : 'ALL';
         }
+
 
         machine.isServer = await checkPort(machine.ip as string, 8080);
         machine.isDatabase = await checkPort(machine.ip as string, 3306);
@@ -29,8 +35,11 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             }
 
             release()
-        } else machine.isPDV = false;
-        
-    } catch (error) { console.error(`Erro ao conectar na base de dados do IP ${machine.ip}:`, error) }
+        };
+
+        logMessage(`Conectado ao database do IP ${machine.ip} e fazendo queries adicionais...`);
+    } catch (error) { console.error(`Erro ao conectar na base de dados do IP ${machine.ip}:`, error); return machine }
+
+    clearTimeout(timeout);
     return machine
 }
