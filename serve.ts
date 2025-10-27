@@ -1,7 +1,7 @@
 import { gatherBasicMachineInfo } from "./src/machine";
 
 const server = Bun.serve({
-    port: 3000,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 3001,
     fetch: async (req) => {
         const url = new URL(req.url);
 
@@ -16,4 +16,4 @@ const server = Bun.serve({
     },
 });
 
-console.log("Server running on http://localhost:3000");
+console.log(`Server running on port ${server.port}`);
