@@ -12,7 +12,8 @@ RUN bun install
 COPY . .
 
 # Expose the port (e.g., for a web server)
-EXPOSE 3000
+EXPOSE 3001
 
 # Run the app
+CMD ["ls"]
 CMD ["bun", "run", "serve.ts"]
