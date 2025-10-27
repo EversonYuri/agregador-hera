@@ -7,7 +7,6 @@ import { getPeers } from './src/netbird';
 
 
 async function main() {
-
     const info = new Logger('info');
     const notasRejeitadas = new Logger('notasRejeitadas');
 
