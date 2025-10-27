@@ -15,5 +15,4 @@ COPY . .
 EXPOSE 3001
 
 # Run the app
-CMD ["ls"]
-CMD ["bun", "run", "serve.ts"]
+CMD ["ls", "&&", "bun", "run", "serve.ts"]
