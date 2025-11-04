@@ -42,7 +42,7 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
   // dump.stdout.pipeTo(gzip.stdin);
 
   // manually pipe:
-  (async () => {
+  {
     const reader = dump.stdout.getReader();
     const writer = gzip.stdin as any; // FileSink
     while (true) {
@@ -51,7 +51,7 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
       writer.write(value);
     }
     writer.end();
-  })();
+  }
 
 
   const outFile = Bun.file(outputFile);

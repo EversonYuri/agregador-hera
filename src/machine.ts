@@ -23,10 +23,15 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             machine.isPDV = names.includes('pdv');
             machine.isServer = names.includes('database');
 
-            if (machine.isServer) {
-                const linkRow = (await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'linkBachupDropbox';"))[0] ? 1 : 0;
-                const dataRow = (await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'dataHoraBackupNuvem';"))[0] ? 1 : 0;
-                const certRow = (await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'senhaCertificadoDigital';"))[0] ? 1 : 0;
+            const tableExists = machine.isServer ? await query("SHOW TABLES FROM `database` LIKE 'configuracaobean';") : undefined;
+
+            if (machine.isServer && tableExists && tableExists.length > 0) {
+                const linkResult = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'linkBachupDropbox';");
+                const linkRow = linkResult && linkResult.length > 0 ? 1 : 0;
+                const dataResult = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'dataHoraBackupNuvem';");
+                const dataRow = dataResult && dataResult.length > 0 ? 1 : 0;
+                const certResult = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'senhaCertificadoDigital';");
+                const certRow = certResult && certResult.length > 0 ? 1 : 0;
 
                 let additionalColumns = ["e.CNPJ", "e.RAZAO_SOCIAL", "c.varsaoSistema AS versaoSistema"];
                 if (linkRow) additionalColumns.push("c.linkBachupDropbox");

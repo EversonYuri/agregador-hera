@@ -24,7 +24,7 @@ export async function openConnection(host: string): Promise<mariadb.PoolConnecti
         try {
             let result = await conn.query(query)
             return result
-        } catch (error) { console.error("Erro na query:", error); return undefined }
+        } catch (error) { console.error(`Erro na query no ${host}: `, query, error); return undefined }
     }
 
     return { query, release: conn.release }
