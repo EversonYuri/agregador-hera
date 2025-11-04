@@ -1,6 +1,7 @@
 import { gatherBasicMachineInfo } from "./src/machine";
 
 const server = Bun.serve({
+    hostname: "0.0.0.0", 
     port: process.env.PORT ? parseInt(process.env.PORT) : 3001,
     fetch: async (req) => {
         const url = new URL(req.url);
