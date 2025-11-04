@@ -30,18 +30,18 @@ async function main() {
     //
     //
     try {
-        await runWithLimit(machines, 100, async (machine) => {
-            if (machine.isServer && machine.connected) await backupDatabase(machine.ip, 'database', `./public/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
-        });
+        for (const machine of machines)
+            if (machine.isServer && machine.connected) backupDatabase(machine.ip, 'database', `./public/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
     } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
 
     // Backup do pdv
     //
     //
     try {
-        await runWithLimit(machines, 100, async (machine) => {
-            if (machine.isPDV && machine.connected) await backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
-        });
+        for (const machine of machines)
+            if (machine.isPDV && machine.connected) backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
+        // await runWithLimit(machines, 100, async (machine) => {
+        // });
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
     // Log das informações coletadas
