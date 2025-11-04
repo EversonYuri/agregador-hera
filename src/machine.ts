@@ -1,6 +1,7 @@
 import { openConnection } from "./db/conn";
 import { logMessage } from "./lib/utils";
 import { checkPort } from "./net";
+import fs from "fs";
 
 export async function gatherBasicMachineInfo(machine: Record<string, any>) {
     const timeout = setTimeout(() => {
@@ -13,25 +14,43 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             machine.group = group ? (group.name as string).toUpperCase() : 'ALL';
         }
 
-
-        machine.isServer = await checkPort(machine.ip as string, 8080);
         machine.isDatabase = await checkPort(machine.ip as string, 3306);
 
         if (machine.isDatabase) {
             const { query, release } = await openConnection(machine.ip)
 
-            if (machine.isServer && await query("SHOW DATABASES LIKE 'database'").then((rows: any) => rows.length > 0)) {
-                machine.serverInfo = await query("select e.CNPJ, e.RAZAO_SOCIAL, c.varsaoSistema as versaoSistema from `database`.empresabean e join `database`.configuracaobean c")
+            const names = (await query("SHOW DATABASES WHERE `Database` IN ('pdv', 'database')")).map((r: any) => r.Database);
+            machine.isPDV = names.includes('pdv');
+            machine.isServer = names.includes('database');
+
+            if (machine.isServer) {
+                const linkRow = (await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'linkBachupDropbox';"))[0] ? 1 : 0;
+                const dataRow = (await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'dataHoraBackupNuvem';"))[0] ? 1 : 0;
+                const certRow = (await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'senhaCertificadoDigital';"))[0] ? 1 : 0;
+
+                let additionalColumns = ["e.CNPJ", "e.RAZAO_SOCIAL", "c.varsaoSistema AS versaoSistema"];
+                if (linkRow) additionalColumns.push("c.linkBachupDropbox");
+                if (dataRow) additionalColumns.push("c.dataHoraBackupNuvem");
+                if (certRow) additionalColumns.push(`JSON_OBJECT( 'senha', c.senhaCertificadoDigital, 'data_validade', c.dataValidadeCertificadoDigital, 'nome', c.nomeCertificadoDigital) AS certificadoDigital`);
+
+                const sql = `SELECT ${additionalColumns.join(", ")} FROM \`database\`.empresabean e JOIN \`database\`.configuracaobean c;`;
+                machine.serverInfo = (await query(sql))[0];
+
+                if (machine.serverInfo && machine.serverInfo.certificadoDigital) machine.serverInfo.certificadoDigital = JSON.parse(machine.serverInfo.certificadoDigital);
+                if (machine.serverInfo && machine.serverInfo.certificadoDigital && !machine.serverInfo.certificadoDigital.senha) {
+                    delete machine.serverInfo.certificadoDigital;
+                }
             }
 
-            machine.isPDV = await query("SHOW DATABASES LIKE 'pdv'")
-                .then((rows: any) => rows.length > 0);
-
             if (machine.isPDV) {
-                machine.notasRejeitadas = await query("SELECT * from pdv.ecf_venda_cabecalho where `STATUS_NFCE` = 2");
-                machine.pdvInfo = await query("select ec2.TIPO_APLICATIVO, ec.NOME, ec2.versao, case when ec2.SERVIDOR_NFCE = 2 then 'NS A1' when ec2.SERVIDOR_NFCE = 3 then 'NS A3' when ec2.SERVIDOR_NFCE = 4 then 'EMISSOR HERA' end as SERVIDOR_NFCE from pdv.ecf_configuracao ec2 join pdv.ecf_caixa ec;")
-                machine.NCMIncorretos = await query("SELECT DISTINCT d.GTIN, d.DESCRICAO FROM pdv.ecf_venda_detalhe d JOIN pdv.ecf_venda_cabecalho c ON d.ID_ECF_VENDA_CABECALHO = c.ID WHERE INSTR(CONVERT(c.RETORNO_NFCE USING latin1), 'Rejeição: Informado NCM inexistente [nItem:') > 0 AND d.ITEM = SUBSTRING(CONVERT(c.RETORNO_NFCE USING latin1), INSTR(CONVERT(c.RETORNO_NFCE USING latin1), '[nItem:') + 7, INSTR(CONVERT(c.RETORNO_NFCE USING latin1), ']') - INSTR(CONVERT(c.RETORNO_NFCE USING latin1), '[nItem:') - 7)")
-                machine.notasDuplicidade = await query("SELECT * FROM pdv.ecf_venda_cabecalho WHERE INSTR(CONVERT(RETORNO_NFCE USING cp850), 'Duplicidade de NF-e') > 0")
+                let pdv = (await query(fs.readFileSync('src/db/query/pdvinfo.sql', 'utf-8')))[0]
+
+                pdv.pdvInfo = JSON.parse(pdv.pdvInfo)
+                pdv.notasDuplicidade = JSON.parse(pdv.notasDuplicidade)
+                pdv.NCMIncorretos = JSON.parse(pdv.NCMIncorretos)
+                pdv.notasRejeitadas = JSON.parse(pdv.notasRejeitadas)
+
+                machine = { ...machine, ...pdv };
             }
 
             release()

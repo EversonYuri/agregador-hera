@@ -9,7 +9,8 @@ export async function openConnection(host: string): Promise<mariadb.PoolConnecti
         port: 3306,
         connectionLimit: 5,
         queryTimeout: 6000,
-        connectTimeout: 6000
+        connectTimeout: 6000,
+        multipleStatements: true
     })
 
     //@ts-ignore
@@ -21,9 +22,7 @@ export async function openConnection(host: string): Promise<mariadb.PoolConnecti
 
     const query = async (query: string) => {
         try {
-            let result = await conn.execute(query)
-            result = Array.isArray(result) ? [...result] : [];
-
+            let result = await conn.query(query)
             return result
         } catch (error) { console.error("Erro na query:", error); return undefined }
     }

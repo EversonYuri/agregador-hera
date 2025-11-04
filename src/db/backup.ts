@@ -12,16 +12,6 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
 
   logMessage(`Backing up ${dbName} to ${outputFile}`);
 
-  // Timeout: 60 minutes (900000 ms)
-  // const TIMEOUT_MS = 900000;
-  // let timeoutHandle: NodeJS.Timeout | undefined;
-  // const timeoutPromise = new Promise((_, reject) => {
-  //   timeoutHandle = setTimeout(() => {
-  //     logMessage(`⏰ Backup on ${outputFile} timed out after 15 minutes.`);
-  //     reject(`⏰ Backup on ${outputFile} timed out after 15 minutes.`);
-  //   }, TIMEOUT_MS);
-  // });
-
   const dump = Bun.spawn([
     "C:/HERA/BANCO/bin/mysqldump",
     "-h", host,
@@ -74,16 +64,4 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
     writer.write(chunk);
   }
   await writer.end();
-
-  // // Race backup against timeout
-  // try {
-  //   await Promise.race([pipeline(gzip.stdout, out), timeoutPromise]);
-  //   logMessage("✅ Backup completed:", outputFile);
-  // } finally {
-  //   if (timeoutHandle) clearTimeout(timeoutHandle);
-  //   dump.kill("SIGTERM");
-  //   gzip.kill("SIGTERM");
-  //   out.close();
-  //   out.destroy();
-  // }
 }
