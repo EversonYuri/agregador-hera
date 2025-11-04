@@ -13,20 +13,20 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
   logMessage(`Backing up ${dbName} to ${outputFile}`);
 
   // Timeout: 60 minutes (900000 ms)
-  const TIMEOUT_MS = 900000;
-  let timeoutHandle: NodeJS.Timeout | undefined;
-  const timeoutPromise = new Promise((_, reject) => {
-    timeoutHandle = setTimeout(() => {
-      logMessage(`⏰ Backup on ${outputFile} timed out after 15 minutes.`);
-      reject(`⏰ Backup on ${outputFile} timed out after 15 minutes.`);
-    }, TIMEOUT_MS);
-  });
+  // const TIMEOUT_MS = 900000;
+  // let timeoutHandle: NodeJS.Timeout | undefined;
+  // const timeoutPromise = new Promise((_, reject) => {
+  //   timeoutHandle = setTimeout(() => {
+  //     logMessage(`⏰ Backup on ${outputFile} timed out after 15 minutes.`);
+  //     reject(`⏰ Backup on ${outputFile} timed out after 15 minutes.`);
+  //   }, TIMEOUT_MS);
+  // });
 
-  // mysqldump command (no locking, safe for VPN)
-  const dump = spawn("C:/HERA/BANCO/bin/mysqldump", [
+  const dump = Bun.spawn([
+    "C:/HERA/BANCO/bin/mysqldump",
     "-h", host,
     "-u", "root",
-    `-p240190`,
+    "-p240190",
     "--single-transaction",
     "--quick",
     "--compress",
@@ -34,24 +34,56 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
     "--events",
     "--triggers",
     dbName
-  ], { stdio: ["ignore", "pipe", "inherit"] });
+  ], {
+    stdio: ["ignore", "pipe", "inherit"]
+  });
 
-  // gzip compression
-  const gzip = spawn("C:/Program Files (x86)/GnuWin32/bin/gzip.exe", ["-c"], { stdio: ["pipe", "pipe", "inherit"] });
+  // run gzip
+  const gzip = Bun.spawn([
+    "C:/Program Files (x86)/GnuWin32/bin/gzip.exe",
+    "-c"
+  ], {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "inherit"
+  });
 
-  // Pipe mysqldump → gzip → file
-  dump.stdout.pipe(gzip.stdin);
+  // connect mysqldump → gzip
+  // dump.stdout.pipeTo(gzip.stdin);
 
-  const out = createWriteStream(outputFile);
+  // manually pipe:
+  (async () => {
+    const reader = dump.stdout.getReader();
+    const writer = gzip.stdin as any; // FileSink
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      writer.write(value);
+    }
+    writer.end();
+  })();
 
-  // Race backup against timeout
-  try {
-    await Promise.race([pipeline(gzip.stdout, out), timeoutPromise]);
-    logMessage("✅ Backup completed:", outputFile);
-  } finally {
-    if (timeoutHandle) clearTimeout(timeoutHandle);
-    dump.kill("SIGTERM");
-    gzip.kill("SIGTERM");
-    out.close();
+
+  const outFile = Bun.file(outputFile);
+  // await gzip.stdout.pipeTo(outFile.writable); /
+
+  const writer = outFile.writer();
+
+  // Pipe gzip.stdout into a manual loop:
+  for await (const chunk of gzip.stdout) {
+    writer.write(chunk);
   }
+  await writer.end();
+
+  // // Race backup against timeout
+  // try {
+  //   await Promise.race([pipeline(gzip.stdout, out), timeoutPromise]);
+  //   logMessage("✅ Backup completed:", outputFile);
+  // } finally {
+  //   if (timeoutHandle) clearTimeout(timeoutHandle);
+  //   dump.kill("SIGTERM");
+  //   gzip.kill("SIGTERM");
+  //   out.close();
+  //   out.destroy();
+  // }
 }

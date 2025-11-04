@@ -30,7 +30,7 @@ async function main() {
     //
     //
     try {
-        await runWithLimit(machines, 20, async (machine) => {
+        await runWithLimit(machines, 100, async (machine) => {
             if (machine.isServer && machine.connected) await backupDatabase(machine.ip, 'database', `./public/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
         });
     } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
@@ -39,8 +39,8 @@ async function main() {
     //
     //
     try {
-        await runWithLimit(machines, 20, async (machine) => {
-            if (machine.isPDV && machine.connected) backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
+        await runWithLimit(machines, 100, async (machine) => {
+            if (machine.isPDV && machine.connected) await backupDatabase(machine.ip, 'pdv', `./public/ESTABELECIMENTOS/${machine.group}/backup/`);
         });
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
