@@ -1,6 +1,6 @@
 import mariadb from 'mariadb'
 
-export async function openConnection(host: string): Promise<mariadb.PoolConnection | any> {
+export async function openConnection(host: string, name: string = ''): Promise<mariadb.PoolConnection | any> {
 
     const pool = mariadb.createPool({
         host,
@@ -8,15 +8,13 @@ export async function openConnection(host: string): Promise<mariadb.PoolConnecti
         password: '240190',
         port: 3306,
         connectionLimit: 5,
-        queryTimeout: 6000,
-        connectTimeout: 6000,
-        multipleStatements: true
+        queryTimeout: 10000,
+        connectTimeout: 10000,
+        multipleStatements: true,
     })
 
     //@ts-ignore
-    pool.on('error', (err) => {
-        console.error('Pool emitted error:', err);
-    });
+    pool.on('error', (err) => { console.error(`Pool emitted error  ${name} ${host}:`, err) });
 
     const conn = await pool.getConnection()
 
@@ -24,9 +22,17 @@ export async function openConnection(host: string): Promise<mariadb.PoolConnecti
         try {
             let result = await conn.query(query)
             return result
-        } catch (error) { console.error(`Erro na query no ${host}: `, query, error); return undefined }
+        } catch (error) {
+            try {
+                console.error(`Erro na query no ${name} ${host} refazendo a query`);
+                let result2 = await conn.query(query)
+                return result2
+            } catch (error) {
+                console.error(`Erro na query no ${name} ${host}: `, query, error);
+                return undefined
+            }
+        }
     }
 
     return { query, release: conn.release }
-
 }

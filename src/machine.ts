@@ -17,7 +17,7 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
         machine.isDatabase = await checkPort(machine.ip as string, 3306);
 
         if (machine.isDatabase) {
-            const { query, release } = await openConnection(machine.ip)
+            const { query, release } = await openConnection(machine.ip, machine.name);
 
             const names = (await query("SHOW DATABASES WHERE `Database` IN ('pdv', 'database')")).map((r: any) => r.Database);
             machine.isPDV = names.includes('pdv');
@@ -36,10 +36,12 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
                 let additionalColumns = ["e.CNPJ", "e.RAZAO_SOCIAL", "c.varsaoSistema AS versaoSistema"];
                 if (linkRow) additionalColumns.push("c.linkBachupDropbox");
                 if (dataRow) additionalColumns.push("c.dataHoraBackupNuvem");
+                if (linkRow) additionalColumns.push("c.listaEmailsEnvioXML");
                 if (certRow) additionalColumns.push(`JSON_OBJECT( 'senha', c.senhaCertificadoDigital, 'data_validade', c.dataValidadeCertificadoDigital, 'nome', c.nomeCertificadoDigital) AS certificadoDigital`);
 
                 const sql = `SELECT ${additionalColumns.join(", ")} FROM \`database\`.empresabean e JOIN \`database\`.configuracaobean c;`;
-                machine.serverInfo = (await query(sql))[0];
+                const sqlResult = await query(sql);
+                machine.serverInfo = sqlResult ? sqlResult[0] : undefined;
 
                 if (machine.serverInfo && machine.serverInfo.certificadoDigital) machine.serverInfo.certificadoDigital = JSON.parse(machine.serverInfo.certificadoDigital);
                 if (machine.serverInfo && machine.serverInfo.certificadoDigital && !machine.serverInfo.certificadoDigital.senha) {
@@ -48,14 +50,17 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             }
 
             if (machine.isPDV) {
-                let pdv = (await query(fs.readFileSync('src/db/query/pdvinfo.sql', 'utf-8')))[0]
+                const pdvDbResult = await query(fs.readFileSync('src/db/query/pdvinfo.sql', 'utf-8'))
+                let pdv = pdvDbResult ? pdvDbResult[0] : undefined;
 
-                pdv.pdvInfo = JSON.parse(pdv.pdvInfo)
-                pdv.notasDuplicidade = JSON.parse(pdv.notasDuplicidade)
-                pdv.NCMIncorretos = JSON.parse(pdv.NCMIncorretos)
-                pdv.notasRejeitadas = JSON.parse(pdv.notasRejeitadas)
+                if (pdv) {
+                    pdv.pdvInfo = JSON.parse(pdv.pdvInfo)
+                    pdv.notasDuplicidade = JSON.parse(pdv.notasDuplicidade)
+                    pdv.NCMIncorretos = JSON.parse(pdv.NCMIncorretos)
+                    pdv.notasRejeitadas = JSON.parse(pdv.notasRejeitadas)
 
-                machine = { ...machine, ...pdv };
+                    machine = { ...machine, ...pdv };
+                }
             }
 
             release()
