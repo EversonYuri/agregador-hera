@@ -17,7 +17,7 @@ export function createHTMLFile(machine: Record<string, any>) {
 <p>Redirecionando para <a href=\"http://${machine.ip}:8080/gestaofacil\">Gestão Fácil</a>...</p>
 </body>
 </html>`;
-        const folderPath = path.join(__dirname, '..', 'public', 'ESTABELECIMENTOS', (machine.group) as string);
+        const folderPath = path.join(Bun.env.SAVE_DIR || '', 'ESTABELECIMENTOS', (machine.group) as string);
         
         fs.writeFileSync(path.join(folderPath, fileName), redirectHtml, { encoding: 'utf8' });
     }

@@ -8,12 +8,10 @@ export async function getComputers() {
     };
 
     console.log(Bun.env.NETBIRD_KEY);
-    
+
     return await fetch('https://web-vpn.com.br/api/peers', options)
         .then(response => response.json())
-        .catch(err => console.error(err)) as Record<string, any>[]
-
-        
+        .catch(err => console.error(err)) as Record<string, any>[]        
 }
 
 export async function getPeers() {

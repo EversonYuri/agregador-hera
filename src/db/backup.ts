@@ -1,11 +1,7 @@
-// backup-remote-mariadb.js
-import { spawn } from "child_process";
-import { createWriteStream } from "fs";
-import { pipeline } from "stream/promises";
 import { logMessage } from "../lib/utils";
 import path from "path";
 
-export async function backupDatabase(host: string, dbName: string, saveLocation: string = "./public/") {
+export async function backupDatabase(host: string, dbName: string, saveLocation: string = Bun.env.SAVE_DIR || "") {
   const now = new Date();
   const date = now.toISOString().split("T")[0];
   const outputFile = path.join(saveLocation, `${dbName}_${date}.sql.gz`);

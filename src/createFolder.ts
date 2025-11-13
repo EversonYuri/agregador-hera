@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export function createFolder(folderName: string) {
-    const folderPath = path.join(__dirname, '..', 'public', folderName);
+    const folderPath = path.join(Bun.env.SAVE_DIR || "", folderName);
 
     if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath);
