@@ -4,12 +4,12 @@ export async function openConnection(host: string, name: string = ''): Promise<m
 
     const pool = mariadb.createPool({
         host,
-        user: 'root',
-        password: '240190',
-        port: 3306,
+        user: Bun.env.USUARIO_DB,
+        password: Bun.env.SENHA_DB,
+        port: ((Bun.env.PORT_DB as unknown) as number),
         connectionLimit: 5,
-        queryTimeout: 10000,
-        connectTimeout: 10000,
+        queryTimeout: 20000,
+        connectTimeout: 20000,
         multipleStatements: true,
     })
 

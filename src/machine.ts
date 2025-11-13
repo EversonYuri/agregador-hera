@@ -32,17 +32,21 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
                 const dataRow = dataResult && dataResult.length > 0 ? 1 : 0;
                 const certResult = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'senhaCertificadoDigital';");
                 const certRow = certResult && certResult.length > 0 ? 1 : 0;
+                const enviaEmail = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'listaEmailsEnvioXML';");
+                const enviaEmailRow = enviaEmail && enviaEmail.length > 0 ? 1 : 0;
+                const servicoEmisso = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'servicoEmissao';");
+                const servicoEmissoRow = servicoEmisso && servicoEmisso.length > 0 ? 1 : 0;
 
                 let additionalColumns = ["e.CNPJ", "e.RAZAO_SOCIAL", "c.varsaoSistema AS versaoSistema"];
                 if (linkRow) additionalColumns.push("c.linkBachupDropbox");
                 if (dataRow) additionalColumns.push("c.dataHoraBackupNuvem");
-                if (linkRow) additionalColumns.push("c.listaEmailsEnvioXML");
+                if (enviaEmailRow) additionalColumns.push("c.listaEmailsEnvioXML");
+                if (servicoEmissoRow) additionalColumns.push("case c.servicoEmissao when 0 then 'EMISSOR' when 1 then 'PORTAL' else '' end as servicoEmissao");
                 if (certRow) additionalColumns.push(`JSON_OBJECT( 'senha', c.senhaCertificadoDigital, 'data_validade', c.dataValidadeCertificadoDigital, 'nome', c.nomeCertificadoDigital) AS certificadoDigital`);
 
                 const sql = `SELECT ${additionalColumns.join(", ")} FROM \`database\`.empresabean e JOIN \`database\`.configuracaobean c;`;
                 const sqlResult = await query(sql);
                 machine.serverInfo = sqlResult ? sqlResult[0] : undefined;
-
                 if (machine.serverInfo && machine.serverInfo.certificadoDigital) machine.serverInfo.certificadoDigital = JSON.parse(machine.serverInfo.certificadoDigital);
                 if (machine.serverInfo && machine.serverInfo.certificadoDigital && !machine.serverInfo.certificadoDigital.senha) {
                     delete machine.serverInfo.certificadoDigital;
@@ -66,8 +70,8 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             release()
         };
 
-        logMessage(`Conectado ao database do IP ${machine.ip} e fazendo queries adicionais...`);
-    } catch (error) { console.error(`Erro ao conectar na base de dados do IP ${machine.ip}:`, error); return machine }
+        logMessage(`Conectado ao database do ${machine.name} e fazendo queries adicionais...`);
+    } catch (error) { console.error(`Erro ao conectar na base de dados do ${machine.ip} ${machine.name} `, error); return machine }
 
     clearTimeout(timeout);
     return machine

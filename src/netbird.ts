@@ -4,7 +4,7 @@ import { gatherBasicMachineInfo } from "./machine";
 export async function getComputers() {
     const options = {
         method: 'GET',
-        headers: { Authorization: 'Bearer nbp_PXReq0Q4pPpvIg7yFTVgwUkDLuj6eU2N6T1A' }
+        headers: { Authorization: 'Bearer ' + Bun.env.NETBIRD_KEY }
     };
 
     return await fetch('https://web-vpn.com.br/api/peers', options)
@@ -32,7 +32,7 @@ export function createGroups(editedMachines: any[]) {
         for (let group of machine.groups) if (group && typeof group.name === 'string') {
 
             group.name = group.name.toUpperCase();
-            
+
             if (groupSet.has(group.name)) {
                 let currentGroup = groupSet.get(group.name);
                 currentGroup.computadores.push({
