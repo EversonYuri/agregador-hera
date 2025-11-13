@@ -1,6 +1,6 @@
 import { gatherBasicMachineInfo } from "./src/machine";
 import { createGroups, getComputers } from "./src/netbird";
-
+console.log(process.platform)
 const server = Bun.serve({
     hostname: "0.0.0.0", 
     port: process.env.PORT ? parseInt(process.env.PORT) : 3001,

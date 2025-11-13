@@ -11,32 +11,61 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
   const outputFile = path.join(saveLocation, `${dbName}_${date}.sql.gz`);
 
   logMessage(`Backing up ${dbName} to ${outputFile}`);
+  let dump
 
-  const dump = Bun.spawn([
-    "C:/HERA/BANCO/bin/mysqldump",
-    "-h", host,
-    "-u", "root",
-    "-p240190",
-    "--single-transaction",
-    "--quick",
-    "--compress",
-    "--routines",
-    "--events",
-    "--triggers",
-    dbName
-  ], {
-    stdio: ["ignore", "pipe", "inherit"]
-  });
+  if (process.platform === "win32") {
+    dump = Bun.spawn([
+      "C:/HERA/BANCO/bin/mysqldump",
+      "-h", host,
+      "-u", Bun.env.USUARIO_DB || '',
+      `-p${Bun.env.SENHA_DB}`,
+      "--single-transaction",
+      "--quick",
+      "--compress",
+      "--routines",
+      "--events",
+      "--triggers",
+      dbName
+    ], {
+      stdio: ["ignore", "pipe", "inherit"]
+    });
+  } else {
+    dump = Bun.spawn([
+      "docker", "exec", "-i", "mariadb",  // nome do container
+      "mysqldump",
+      "-u", Bun.env.USUARIO_DB || '',
+      `-p${Bun.env.SENHA_DB}`,
+      "--single-transaction",
+      "--quick",
+      "--compress",
+      "--routines",
+      "--events",
+      "--triggers",
+      dbName
+    ], {
+      stdio: ["ignore", "pipe", "inherit"]
+    });
+  }
+
+  let gzip
 
   // run gzip
-  const gzip = Bun.spawn([
-    "C:/Program Files (x86)/GnuWin32/bin/gzip.exe",
-    "-c"
-  ], {
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "inherit"
-  });
+  if (process.platform === "win32") {
+    gzip = Bun.spawn([
+      "C:/Program Files (x86)/GnuWin32/bin/gzip.exe",
+      "-c"
+    ], {
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "inherit"
+    });
+  } else {
+    gzip = Bun.spawn(["gzip", "-c"], {
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "inherit",
+    });
+  }
 
   // connect mysqldump → gzip
   // dump.stdout.pipeTo(gzip.stdin);
@@ -64,4 +93,6 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
     writer.write(chunk);
   }
   await writer.end();
+
+  logMessage(`terminado o backup ${dbName}`)
 }
