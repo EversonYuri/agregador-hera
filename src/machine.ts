@@ -71,7 +71,7 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
         };
 
         logMessage(`Conectado ao database do ${machine.name} e fazendo queries adicionais...`);
-    } catch (error) { console.error(`Erro ao conectar na base de dados do ${machine.ip} ${machine.name} `, error); return machine }
+    } catch (error) { console.error(`Erro ao conectar na base de dados do ${machine.ip} ${machine.name} `); return machine }
 
     clearTimeout(timeout);
     return machine
