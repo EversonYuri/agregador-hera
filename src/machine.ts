@@ -14,6 +14,8 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             machine.group = group ? (group.name as string).toUpperCase() : 'ALL';
         }
 
+        console.log(machine.ip);
+        
         machine.isDatabase = await checkPort(machine.ip as string, 3306);
 
         if (machine.isDatabase) {

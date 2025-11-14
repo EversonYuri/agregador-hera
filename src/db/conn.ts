@@ -14,7 +14,7 @@ export async function openConnection(host: string, name: string = ''): Promise<m
     })
 
     //@ts-ignore
-    pool.on('error', (err) => { console.error(`Pool emitted error  ${name} ${host}:`, err.sqlMessage) });
+    pool.on('error', (err) => { console.error(`Pool emitted error ${name} ${host}:`, err.sqlMessage) });
 
     const conn = await pool.getConnection()
 
