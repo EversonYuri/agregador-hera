@@ -6,20 +6,7 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
   const date = now.toISOString().split("T")[0];
   const outputFile = path.join(saveLocation, `${dbName}_${date}.sql.gz`);
 
-  // logMessage(`Backing up ${dbName} to ${outputFile}`);
-  console.log("docker", "exec", "-i", "mariadb",  
-    "mariadb-dump",
-    "-h", host,
-    "-u", Bun.env.USUARIO_DB || '',
-    `-p${Bun.env.SENHA_DB}`,
-    "--skip-ssl",
-    "--single-transaction",
-    "--quick",
-    "--compress",
-    "--routines",
-    "--events",
-    "--triggers",
-    dbName)
+  logMessage(`Backing up ${dbName} to ${outputFile}`);
 
   // run mariadb-dump
   let dump

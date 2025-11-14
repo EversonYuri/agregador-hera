@@ -39,7 +39,7 @@ async function main() {
     //
     try {
         for (const machine of machines)
-            if (machine.isPDV && machine.connected) backupDatabase(machine.ip, 'pdv', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/`);
+            if (machine.isPDV && machine.connected) backupDatabase(machine.ip, 'pdv', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
         // await runWithLimit(machines, 100, async (machine) => {
         // });
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
