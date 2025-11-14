@@ -17,7 +17,7 @@ export async function getPeers() {
 
     machines = machines.filter((machine) => machine.ip !== "100.127.0.203")
 
-    let editedMachines: any[] = await Promise.all(machines.map(async (machine) => await gatherBasicMachineInfo(machine)));
+    let editedMachines: any[] = await Promise.allSettled(machines.map(async (machine) => await gatherBasicMachineInfo(machine)));
     logMessage("✅ Terminado de pegar a informação dos peers.");
 
     const groupSet = createGroups(editedMachines);

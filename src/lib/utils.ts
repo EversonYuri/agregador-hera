@@ -8,7 +8,7 @@ export async function runWithLimit(items: any[], limit: number, fn: (item: any) 
   const results = [];
   for (let i = 0; i < items.length; i += limit) {
     const chunk = items.slice(i, i + limit);
-    const chunkResults = await Promise.all(chunk.map(fn));
+    const chunkResults = await Promise.allSettled(chunk.map(fn));
     results.push(...chunkResults);
   }
   return results;
