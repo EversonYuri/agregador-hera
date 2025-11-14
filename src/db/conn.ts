@@ -27,8 +27,8 @@ export async function openConnection(host: string, name: string = ''): Promise<m
                 console.error(`Erro na query no ${name} ${host} refazendo a query`);
                 let result2 = await conn.query(query)
                 return result2
-            } catch (error) {
-                console.error(`Erro na query no ${name} ${host}: `, query, error);
+            } catch (error: any) {
+                console.error(`Erro na query no ${name} ${host}: `, query, error.sqlMessage, error.sql);
                 return undefined
             }
         }
