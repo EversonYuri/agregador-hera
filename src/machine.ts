@@ -14,8 +14,6 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
             machine.group = group ? (group.name as string).toUpperCase() : 'ALL';
         }
 
-        console.log(machine.ip);
-        
         machine.isDatabase = await checkPort(machine.ip as string, 3306);
 
         if (machine.isDatabase) {
@@ -68,13 +66,13 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
                     machine = { ...machine, ...pdv };
                 }
             }
-
+            
             release()
         };
-
+        
         logMessage(`Conectado ao database do ${machine.name} e fazendo queries adicionais...`);
     } catch (error) { console.error(`Erro ao conectar na base de dados do ${machine.ip} ${machine.name} `); return machine }
-
+    
     clearTimeout(timeout);
     return machine
 }

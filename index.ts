@@ -10,7 +10,6 @@ async function main() {
     const notasRejeitadas = new Logger('notasRejeitadas');
 
     const { machines, groups } = await getPeers()
-    for (const machine in machines) console.log(machine);
     
     // Criação das pastas
     //

@@ -9,7 +9,7 @@ export async function getComputers() {
 
     return await fetch('https://web-vpn.com.br/api/peers', options)
         .then(response => response.json())
-        .catch(err => console.error(err)) as Record<string, any>[]        
+        .catch(err => console.error(err)) as Record<string, any>[]
 }
 
 export async function getPeers() {
@@ -17,7 +17,7 @@ export async function getPeers() {
 
     machines = machines.filter((machine) => machine.ip !== "100.127.0.203")
 
-    let editedMachines: any[] = await Promise.allSettled(machines.map(async (machine) => await gatherBasicMachineInfo(machine)));
+    let editedMachines: any[] = (await Promise.allSettled(machines.map(async (machine) => await gatherBasicMachineInfo(machine)))).map((item: any) => item.value);
     logMessage("✅ Terminado de pegar a informação dos peers.");
 
     const groupSet = createGroups(editedMachines);

@@ -14,7 +14,5 @@ export function createStoreFolder(machine: Record<string, any>) {
     createFolder('ESTABELECIMENTOS')
     createFolder(path.join('ESTABELECIMENTOS', machine.group + ""))
     createFolder(path.join('ESTABELECIMENTOS', machine.group + "", 'backup'))
-    
-    console.log('ESTABELECIMENTOS', machine.group + "", 'backup', machine.name);
     createFolder(path.join('ESTABELECIMENTOS', machine.group + "", 'backup', machine.name))
 }
