@@ -12,7 +12,7 @@ export function createFolder(folderName: string) {
 
 export function createStoreFolder(machine: Record<string, any>) {
     createFolder('ESTABELECIMENTOS')
-    createFolder(path.join('ESTABELECIMENTOS', machine.group || "SEM GRUPO"))
-    createFolder(path.join('ESTABELECIMENTOS', machine.group || "SEM GRUPO", 'backup'))
-    createFolder(path.join('ESTABELECIMENTOS', machine.group || "SEM GRUPO", 'backup', machine.name))
+    createFolder(path.join('ESTABELECIMENTOS', machine.group + ""))
+    createFolder(path.join('ESTABELECIMENTOS', machine.group + "", 'backup'))
+    createFolder(path.join('ESTABELECIMENTOS', machine.group + "", 'backup', machine.name))
 }
