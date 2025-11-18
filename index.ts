@@ -4,13 +4,12 @@ import { backupDatabase } from './src/db/backup';
 import { Logger } from './src/log/log';
 import { getPeers } from './src/netbird';
 
-
 async function main() {
     const info = new Logger('info');
     const notasRejeitadas = new Logger('notasRejeitadas');
 
     const { machines, groups } = await getPeers()
-    
+
     // Criação das pastas
     //
     //
