@@ -4,6 +4,13 @@ import { backupDatabase } from './src/db/backup';
 import { Logger } from './src/log/log';
 import { getPeers } from './src/netbird';
 
+async function runWithLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>) {
+    for (let i = 0; i < items.length; i += limit) {
+        const batch = items.slice(i, i + limit);
+        await Promise.all(batch.map(fn));
+    }
+}
+
 async function main() {
     const info = new Logger('info');
     const notasRejeitadas = new Logger('notasRejeitadas');
@@ -28,18 +35,30 @@ async function main() {
     //
     //
     try {
-        for (const machine of machines)
-            if (machine.isServer && machine.connected) backupDatabase(machine.ip, 'database', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
-    } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
-
+        const serverMachines = machines.filter(machine => machine.isServer && machine.connected);
+        await runWithLimit(serverMachines, 100, async (machine) => {
+            await backupDatabase(
+                machine.ip,
+                'database',
+                `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`
+            );
+        });
+    } catch (error) {
+        console.error('Erro ao fazer backup do banco do database:', error);
+    }
+    
     // Backup do pdv
     //
     //
     try {
-        for (const machine of machines)
-            if (machine.isPDV && machine.connected) backupDatabase(machine.ip, 'pdv', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
-        // await runWithLimit(machines, 100, async (machine) => {
-        // });
+        const pdvMachines = machines.filter(machine => machine.isPDV && machine.connected);
+        await runWithLimit(pdvMachines, 100, async (machine) => {
+            await backupDatabase(
+                machine.ip,
+                'pdv',
+                `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`
+            );
+        });
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 
     // Log das informações coletadas
