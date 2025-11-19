@@ -9,7 +9,7 @@ export class Logger {
     constructor(name: string) {
         this.name = name;
         createFolder('logs');
-        createFolder(path.join('logs', name));
+        createFolder(path.join(Bun.env.SAVE_DIR = "",'logs', name));
     }
 
     log(message: string) {
