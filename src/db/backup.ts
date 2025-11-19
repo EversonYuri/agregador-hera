@@ -1,7 +1,8 @@
 import { logMessage } from "../lib/utils";
 import path from "path";
 
-export async function backupDatabase(host: string, dbName: string, saveLocation: string = Bun.env.SAVE_DIR || "") {
+export async function backupDatabase(machine: Record<string, any>, dbName: string, saveLocation: string = Bun.env.SAVE_DIR || "") {
+  const host = machine.ip
   const now = new Date();
   const date = now.toISOString().split("T")[0];
   const outputFile = path.join(saveLocation, `${dbName}_${date}.sql.gz`);
@@ -90,5 +91,5 @@ export async function backupDatabase(host: string, dbName: string, saveLocation:
   }
   await writer.end();
 
-  logMessage(`terminado o backup ${dbName}`)
+  logMessage(`${machine.index} - terminado o backup do ${dbName} no ${machine.name} `)
 }
