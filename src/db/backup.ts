@@ -10,62 +10,40 @@ export async function backupDatabase(machine: Record<string, any>, dbName: strin
   logMessage(`Backing up ${dbName} to ${outputFile}`);
 
   // run mariadb-dump
-  let dump
-  if (process.platform === "win32") {
-    dump = Bun.spawn([
-      "C:/HERA/BANCO/bin/mysqldump",
-      "-h", host,
-      "-u", Bun.env.USUARIO_DB || '',
-      `-p${Bun.env.SENHA_DB}`,
-      "--single-transaction",
-      "--quick",
-      "--compress",
-      "--routines",
-      "--events",
-      "--triggers",
-      dbName
-    ], {
-      stdio: ["ignore", "pipe", "inherit"]
-    });
-  } else {
-    dump = Bun.spawn([
-      "docker", "exec", "-i", "mariadb",  // nome do container
-      "mariadb-dump",
-      "-h", host,
-      "-u", Bun.env.USUARIO_DB || '',
-      `-p${Bun.env.SENHA_DB}`,
-      "--skip-ssl",
-      "--single-transaction",
-      "--quick",
-      "--compress",
-      "--routines",
-      "--events",
-      "--triggers",
-      dbName
-    ], {
-      stdio: ["ignore", "pipe", "inherit"]
-    });
+  let dump = Bun.spawn([
+    "C:/HERA/BANCO/bin/mysqldump",
+    "-h", host,
+    "-u", Bun.env.USUARIO_DB || '',
+    `-p${Bun.env.SENHA_DB}`,
+    "--single-transaction",
+    "--quick",
+    "--compress",
+    "--routines",
+    "--events",
+    "--triggers",
+    dbName
+  ], {
+    stdio: ["ignore", "pipe", "inherit"]
+  });
+
+  const exitDump = await dump.exited;
+
+  if (exitDump !== 0) {
+    logMessage(`❌ mysqldump ${dbName} falhou no ${machine.name} (exit ${exitDump}). Backup cancelado.`);
+
+    return; // NÃO cria arquivo
   }
 
 
   // run gzip
-  let gzip
-  if (process.platform === "win32") {
-    gzip = Bun.spawn([
-      "C:/Program Files (x86)/GnuWin32/bin/gzip.exe",
-      "-c"
-    ], {
-      stdin: "pipe",
-      stdout: "pipe",
-      stderr: "inherit"
-    });
-  } else {
-    gzip = Bun.spawn(["gzip", "-c"], {
-      stdin: "pipe",
-      stdout: "pipe",
-      stderr: "inherit",
-    });
-  }
+  let gzip = Bun.spawn([
+    "C:/Program Files (x86)/GnuWin32/bin/gzip.exe",
+    "-c"
+  ], {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "inherit"
+  });
 
   // manually pipe:
   {
@@ -78,7 +56,6 @@ export async function backupDatabase(machine: Record<string, any>, dbName: strin
     }
     writer.end();
   }
-
 
   const outFile = Bun.file(outputFile);
   // await gzip.stdout.pipeTo(outFile.writable); /
