@@ -8,6 +8,7 @@ import { getPeers } from './src/netbird';
 async function main() {
     const info = new Logger('info');
     const notasRejeitadas = new Logger('notasRejeitadas');
+    const couldNotBackup = new Logger('notasRejeitadas');
 
     const { machines, groups } = await getPeers()
 
@@ -32,7 +33,7 @@ async function main() {
         for (const machine of machines)
             if (machine.isServer && machine.connected) {
                 machine.index = machines.indexOf(machine) + 1;
-                backupDatabase(machine, 'database', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
+                backupDatabase(machine, 'database', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`, couldNotBackup);
             }
     } catch (error) { console.error('Erro ao fazer backup do banco do database:', error) }
 
@@ -43,7 +44,7 @@ async function main() {
         for (const machine of machines)
             if (machine.isPDV && machine.connected) {
                 machine.index = machines.indexOf(machine) + 1;
-                backupDatabase(machine, 'pdv', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`);
+                backupDatabase(machine, 'pdv', `${Bun.env.SAVE_DIR}/ESTABELECIMENTOS/${machine.group}/backup/${machine.name}/`, couldNotBackup);
             }
     } catch (error) { console.error('Erro ao fazer backup do banco do pdv:', error) }
 

@@ -1,7 +1,8 @@
 import { logMessage } from "../lib/utils";
 import path from "path";
+import type { Logger } from "../log/log";
 
-export async function backupDatabase(machine: Record<string, any>, dbName: string, saveLocation: string = Bun.env.SAVE_DIR || "") {
+export async function backupDatabase(machine: Record<string, any>, dbName: string, saveLocation: string = Bun.env.SAVE_DIR || "", couldNotBackup: Logger) {
   const host = machine.ip
   const now = new Date();
   const date = now.toISOString().split("T")[0];
@@ -30,8 +31,8 @@ export async function backupDatabase(machine: Record<string, any>, dbName: strin
 
   if (exitDump !== 0) {
     logMessage(`❌ mysqldump ${dbName} falhou no ${machine.name} (exit ${exitDump}). Backup cancelado.`);
-
-    return; // NÃO cria arquivo
+    couldNotBackup.log(`❌ mysqldump ${dbName} falhou no ${machine.name} (exit ${exitDump}). Backup cancelado.`);
+    return;
   }
 
 
