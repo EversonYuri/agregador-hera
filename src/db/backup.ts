@@ -32,6 +32,7 @@ export async function backupDatabase(machine: Record<string, any>, dbName: strin
   if (exitDump !== 0) {
     logMessage(`❌ mysqldump ${dbName} falhou no ${machine.name} (exit ${exitDump}). Backup cancelado.`);
     couldNotBackup.log(`❌ mysqldump ${dbName} falhou no ${machine.name} (exit ${exitDump}). Backup cancelado.`);
+    couldNotBackup.createLogFile();
     return;
   }
 
