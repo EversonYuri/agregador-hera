@@ -15,9 +15,6 @@ export async function getComputers() {
 export async function getPeers() {
     let machines = await getComputers()
 
-    console.log(machines);
-    
-
     machines = machines.filter((machine) => machine.ip !== "100.127.0.203")
 
     let editedMachines: any[] = (await Promise.allSettled(machines.map(async (machine) => await gatherBasicMachineInfo(machine)))).map((item: any) => item.value);
