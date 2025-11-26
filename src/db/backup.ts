@@ -24,7 +24,8 @@ export async function backupDatabase(machine: Record<string, any>, dbName: strin
     "--triggers",
     dbName
   ], {
-    stdio: ["ignore", "pipe", "inherit"]
+    stdio: ["ignore", "pipe", "inherit"],
+    windowsHide: true
   });
 
   const exitDump = await dump.exited;
@@ -44,7 +45,8 @@ export async function backupDatabase(machine: Record<string, any>, dbName: strin
   ], {
     stdin: "pipe",
     stdout: "pipe",
-    stderr: "inherit"
+    stderr: "inherit",
+    windowsHide: true
   });
 
   // manually pipe:
