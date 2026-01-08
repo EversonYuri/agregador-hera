@@ -14,7 +14,19 @@ export async function openConnection(host: string, name: string = ''): Promise<m
     })
 
     //@ts-ignore
-    pool.on('error', (err) => { console.error(`Pool emitted error ${name} ${host}:`, err.sqlMessage) });
+    pool.on('error', (err) => {
+        console.error(`Pool emitted error ${name} ${host}:`, (err as any).sqlMessage)
+        console.error({
+            host,
+            user: Bun.env.USUARIO_DB,
+            password: Bun.env.SENHA_DB,
+            port: ((Bun.env.PORT_DB as unknown) as number),
+            connectionLimit: 5,
+            queryTimeout: 20000,
+            connectTimeout: 20000,
+            multipleStatements: true,
+        })
+    });
 
     const conn = await pool.getConnection()
 
