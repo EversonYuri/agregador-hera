@@ -40,7 +40,7 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
                     const enviaEmailRow = enviaEmail && enviaEmail.length > 0 ? 1 : 0;
                     const servicoEmisso = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'servicoEmissao';");
                     const servicoEmissoRow = servicoEmisso && servicoEmisso.length > 0 ? 1 : 0;
-                    const useImendes = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'useImendes';");
+                    const useImendes = await query("SHOW COLUMNS FROM `database`.`configuracaobean` LIKE 'habilitarImendes';");
                     const useImendesRow = useImendes && useImendes.length > 0 ? 1 : 0;
 
                     let additionalColumns = ["e.CNPJ", "e.RAZAO_SOCIAL", "c.varsaoSistema AS versaoSistema"];
@@ -49,7 +49,7 @@ export async function gatherBasicMachineInfo(machine: Record<string, any>) {
                     if (enviaEmailRow) additionalColumns.push("c.listaEmailsEnvioXML");
                     if (servicoEmissoRow) additionalColumns.push("case c.servicoEmissao when 0 then 'EMISSOR' when 1 then 'PORTAL' else '' end as servicoEmissao");
                     if (certRow) additionalColumns.push(`JSON_OBJECT( 'senha', c.senhaCertificadoDigital, 'data_validade', c.dataValidadeCertificadoDigital, 'nome', c.nomeCertificadoDigital) AS certificadoDigital`);
-                    if (useImendesRow) additionalColumns.push("c.useImendes");
+                    if (useImendesRow) additionalColumns.push("c.habilitarImendes");
 
                     const sql = `SELECT ${additionalColumns.join(", ")} FROM \`database\`.empresabean e JOIN \`database\`.configuracaobean c;`;
                     const sqlResult = await query(sql);
