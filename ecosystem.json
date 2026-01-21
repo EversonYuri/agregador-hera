@@ -2,9 +2,9 @@
   "apps": [
     {
       "name": "agregador_hera",
-      "script": "bun",
-      "args": "run index.ts",
-      "cwd": "C:\\COMPARTILHAMENTO\\agregador-hera",
+      "script": "/root/.bun/bin/bun",
+      "args": "index.ts",
+      "cwd": "/root/n8n-automation/agregador-hera",
       "instances": 1,
       "autorestart": true,
       "watch": false,
